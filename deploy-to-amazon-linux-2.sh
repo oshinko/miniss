@@ -153,8 +153,8 @@ cat << EOF > form.html
         // When change a HTTP method
         return;
       }
+      Array.from(method.children).forEach(x => method.removeChild(x));
       if (key.value) {
-        Array.from(method.children).forEach(x => method.removeChild(x));
         if (data.get('link') || data.get('data') || data.get('file').name) {
           if (key.value.endsWith('/')) {
             method.add(createHttpMethodElement('POST'));
