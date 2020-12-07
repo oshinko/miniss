@@ -61,15 +61,31 @@ To get a secret object:
 `curl -u Your-Family:Your-Family-Password http://localhost:8000/Your-Text-Object`
 
 
-## Deploying to Amazon Linux 2
+# Deployment to Linux server
 
-AWS key pair is:
+Set SSH remote destination, e.g. `ec2-user@example.com`:
+
+`REMOTE=Your-Instance`
+
+SSH key pair is:
 
 `KEYPAIR=$HOME/.ssh/miniss.pem`
 
-EC2 instance is:
+Set server name, e.g. `miniss.example.com`:
 
-`HOST=Your-Instance`
+`SERVER=Your-Server-Name`
+
+Set server port:
+
+`PORT=80`
+
+Set temporary directory, e.g. `/tmp`:
+
+```sh
+if [ -z "$TEMP" ]; then
+  TEMP=Your-Temporary-Directory-Path
+fi
+```
 
 App arguments are:
 
@@ -80,19 +96,26 @@ MINISS_USERNAME=Your-Username
 MINISS_PASSWORD=Your-Password
 ```
 
-Run this command in a shell prompt.
+Run this command in a shell prompt:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/oshinko/miniss/master/deploy-to-amazon-linux-2.sh \
-    | sed -e "s/\$MINISS_META/$MINISS_META/" \
-    | sed -e "s/\$MINISS_FORBIDDEN/$MINISS_FORBIDDEN/" \
-    | sed -e "s/\$MINISS_USERNAME/$MINISS_USERNAME/" \
-    | sed -e "s/\$MINISS_PASSWORD/$MINISS_PASSWORD/" \
-    | ssh -i $KEYPAIR ec2-user@$HOST
+```sh
+curl -fsSL https://raw.githubusercontent.com/oshinko/miniss/master/deploy.sh \
+  | REMOTE=$REMOTE \
+    KEYPAIR=$KEYPAIR \
+    SERVER=$SERVER \
+    PORT=$PORT \
+    TEMP=$TEMP \
+    MINISS_META=$MINISS_META \
+    MINISS_FORBIDDEN=$MINISS_FORBIDDEN \
+    MINISS_USERNAME=$MINISS_USERNAME \
+    MINISS_PASSWORD=$MINISS_PASSWORD \
+    sh
 ```
 
-When finished, open the form.
- 
-```bash
-open http://$HOST/form.html
-```
+When finished, open the form:
+
+`open http://$SERVER/form.html`
+
+or Windows:
+
+`start http://$SERVER/form.html`

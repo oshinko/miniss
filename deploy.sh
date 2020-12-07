@@ -1,89 +1,37 @@
-# Python
-sudo yum install python3 -y
-python3 -m venv .venv
+if [ -z "$TEMP" ] || [ ! -d $TEMP ]; then
+  echo "No such directory \"$TEMP\""
+fi
 
-# Gunicorn
-.venv/bin/python -m pip install -U gunicorn
+# Cleanup temporaries
+rm -rf $TEMP/miniss-*
 
-# Git
-sudo yum install git -y
+# Setup easy deployment scripts
+git clone https://github.com/oshinko/ops.git -b 0.0.0 $TEMP/miniss-ops
+OPS=$TEMP/miniss-ops/src
 
-# App
-.venv/bin/python -m pip install -U pip git+https://github.com/oshinko/miniss.git
-mkdir -p miniss
-sudo bash -c "cat << EOF > /etc/systemd/system/miniss.service
-[Unit]
-Description=Mini Storage Service
+# Create file of the app's environment variables
+ENVIRONMENT_FILE=$TEMP/miniss-env
+cat << EOS > $ENVIRONMENT_FILE
+MINISS_META=$MINISS_META
+MINISS_FORBIDDEN="$MINISS_FORBIDDEN"
+MINISS_USERNAME=$MINISS_USERNAME
+MINISS_PASSWORD=$MINISS_PASSWORD
+EOS
 
-[Service]
-Environment=MINISS_META=$MINISS_META
-Environment=\"MINISS_FORBIDDEN=$MINISS_FORBIDDEN\"
-Environment=MINISS_USERNAME=$MINISS_USERNAME
-Environment=MINISS_PASSWORD=$MINISS_PASSWORD
-WorkingDirectory=/home/ec2-user/miniss
-ExecStart=/home/ec2-user/.venv/bin/gunicorn miniss:app --bind unix:/home/ec2-user/gunicorn.sock
-Restart=always
-Type=simple
-User=ec2-user
+# Deployment
+REMOTE=$REMOTE \
+KEYPAIR=$KEYPAIR \
+SERVER=$SERVER \
+PORT=$PORT \
+PACKAGE=git+https://github.com/oshinko/miniss.git \
+DESCRIPTION="Mini Storage Service" \
+APP=miniss:app \
+ENVIRONMENT_FILE=$ENVIRONMENT_FILE \
+sh $OPS/update-nginx-wsgi.sh
 
-[Install]
-WantedBy=multi-user.target
-EOF"
-sudo systemctl daemon-reload
-sudo systemctl enable miniss.service
-sudo systemctl restart miniss.service
-
-# Nginx
-sudo amazon-linux-extras install nginx1.12 -y
-sudo bash -c "cat << 'EOF' > /etc/nginx/nginx.conf
-# ref: https://github.com/benoitc/gunicorn/blob/master/examples/nginx.conf
-worker_processes 1;
-
-user nginx nginx;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-  worker_connections 1024; # increase if you have lots of clients
-  accept_mutex off; # set to 'on' if nginx worker_processes > 1
-  use epoll;
-}
-
-http {
-  include mime.types;
-  default_type application/octet-stream;
-  access_log /var/log/nginx/access.log combined;
-  sendfile on;
-
-  upstream app_server {
-    server unix:/home/ec2-user/gunicorn.sock fail_timeout=0;
-  }
-
-  server {
-    listen 80 default_server deferred;
-    client_max_body_size 4G;
-
-    keepalive_timeout 5;
-
-    location / {
-      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto \$scheme;
-      proxy_set_header Host \$http_host;
-      proxy_redirect off;
-      proxy_pass http://app_server;
-    }
-  }
-}
-EOF"
-sudo usermod -aG nginx ec2-user
-sudo chgrp nginx $HOME
-sudo chmod g+x $HOME
-sudo systemctl enable nginx.service
-sudo systemctl start nginx.service
-
-# Form
-cat << EOF > form.html
-<!doctype html>
+# Create form
+cat << EOF > $TEMP/miniss-form.html
+<!DOCTYPE html>
 <html>
 <head>
   <title>Mini Storage Service</title>
@@ -207,5 +155,7 @@ cat << EOF > form.html
 </body>
 </html>
 EOF
-curl -X PUT -u $MINISS_USERNAME:$MINISS_PASSWORD -F file=@form.html http://localhost/form.html
-rm form.html
+curl -X PUT \
+     -u $MINISS_USERNAME:$MINISS_PASSWORD \
+     -F file=@$TEMP/miniss-form.html \
+     http://$SERVER/form.html
