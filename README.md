@@ -1,6 +1,6 @@
 # Mini Storage Service
 
-![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)
+![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)
 
 This is a mutable URL shortener and very simple web storage service.
 
