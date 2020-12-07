@@ -114,8 +114,4 @@ curl -fsSL https://raw.githubusercontent.com/oshinko/miniss/master/deploy.sh \
 
 When finished, open the form:
 
-`open http://$SERVER/form.html`
-
-or Windows:
-
-`start http://$SERVER/form.html`
+`python -m webbrowser -t http://$SERVER/form.html`
