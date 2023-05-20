@@ -95,7 +95,7 @@ MINISS_PASSWORD=Your-Password
 Run this command in a shell prompt:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/oshinko/miniss/master/deploy.sh \
+curl -fsSL https://raw.githubusercontent.com/oshinko/miniss/main/deploy.sh \
   | REMOTE=$REMOTE \
     KEYPAIR=$KEYPAIR \
     SERVER=$SERVER \
