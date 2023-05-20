@@ -4,11 +4,9 @@
 
 This is a mutable URL shortener and very simple web storage service.
 
-
 ## Installation
 
 `pip install -U git+https://github.com/oshinko/miniss.git`
-
 
 ## Running server
 
@@ -21,7 +19,6 @@ To customize the port number:
 To pass environment variables:
 
 `MINISS_META=/path/to/meta python -m miniss`
-
 
 ## Usage
 
@@ -60,8 +57,7 @@ To get a secret object:
 
 `curl -u Your-Family:Your-Family-Password http://localhost:8000/Your-Text-Object`
 
-
-# Deployment to Linux server
+## Deployment to Linux server
 
 Set SSH remote destination, e.g. `ec2-user@example.com`:
 
